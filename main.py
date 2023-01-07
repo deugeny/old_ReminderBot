@@ -7,6 +7,11 @@ def remind_handler(message):
     bot.reply_to(message, messages.REMIND_MESSAGE)
 
 
+@bot.message_handler(commands=['cancel'])
+def remind_handler(message):
+    pass
+
+
 @bot.message_handler(commands=['help'])
 def start_handler(message):
     bot.reply_to(message, messages.HELP_MESSAGE)

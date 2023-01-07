@@ -7,6 +7,8 @@ from config import TROUBLE_TICKET_NUMBER_PATTERN, DATE_FIRST_PART_KIND
 
 REMIND_COMMANDS = ('/remind',)
 
+CANCEL_COMMAND_PATTERN = r'^\/cancel\s+(all)|(\d+)$'
+
 
 def parse_remind_message(message, commands=REMIND_COMMANDS):
     """
@@ -39,3 +41,8 @@ def try_get_trouble_ticket_number(text):
 def try_get_datetime_from_message(text, base_date=None):
     dates = list(datefinder.find_dates(text, first=DATE_FIRST_PART_KIND, base_date=base_date))
     return dates[0] if len(dates) > 0 else None
+
+
+def parse_cancel_command(text):
+    match = re.search(CANCEL_COMMAND_PATTERN, text)
+    return match[match.lastindex] if match else None
