@@ -1,11 +1,18 @@
 # strings
-WELCOME_MESSAGE = 'Hi! Use /remind command to set a reminder. data and time and also trouble ticket number ' \
-                  'will be extracted from the message if it possible.' \
-                  'Example: /remind Please run OS installation  30.12.2022 at 21:00 TT12345678. '
+WELCOME_MESSAGE = 'Привет! Используйте команду /remind для установки напоминания. Дата и время а так же номер ' \
+                  'инцидента будут извлечены из сообщения. \r\n Example: /remind Please run OS installation  ' \
+                  '30.12.2022 at 21:00 TT12345678.'
 
-REMIND_MESSAGE = 'Usage: /remind to set reminder message with date and time.'
+REMIND_MESSAGE = 'Используйте команду /remind для установки напоминания. Дата и время, а так же номер инцидента ' \
+                 'будут извлечены из сообщения. Если дата не указана, то будет использована текущая.' \
+                 'Пример: /remind Запустить установку ОС 30.12.2022 at 21:00 TT12345678.'
 
-CONFIRMATION_MESSAGE = "You're reminder accepted and will be triggered at {0}. To cancel reminder use command /cancel " \
-                       "{1} "
+CONFIRMATION_MESSAGE = 'Вы установили напоминание на дату/время {0}. Для отмены используйте команду /cancel {1}'
 
-CANCEL_MESSAGE = "Usage: /cancel [identifier|all] to cancel reminder with identifier or cancel all reminder's"
+HELP_MESSAGE = 'Применение:/help command - отображает справку по применению команды command.'
+
+CANCEL_MESSAGE = "/cancel [id|all] используйте для отмены напоминания с идентификатором id или всех напоминаний 'all'"
+
+HELP_COMMAND_DESCRIPTION = "Получение справки по работе с ботом."
+REMIND_COMMAND_DESCRIPTION = "Установка напоминаний"
+CANCEL_COMMAND_DESCRIPTION = "Отмена напоминаний"
