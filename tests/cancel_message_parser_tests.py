@@ -2,7 +2,7 @@ import unittest
 import message_parser
 
 
-class MyTestCase(unittest.TestCase):
+class CancelMessageParsingTestCase(unittest.TestCase):
     def test_parse_cancel_command_empty_message(self):
         command = ''
         expected = None

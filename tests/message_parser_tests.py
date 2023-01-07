@@ -3,7 +3,7 @@ import message_parser
 from datetime import datetime
 
 
-class MessageParserTestCase(unittest.TestCase):
+class MessageParsingTestCase(unittest.TestCase):
     def test_parse_remind_message_empty_message_successfully(self):
         message = ""
         expected_result = None, "", None
