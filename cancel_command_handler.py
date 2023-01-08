@@ -8,7 +8,7 @@ from apscheduler.jobstores.base import JobLookupError
 CANCEL_COMMAND_PATTERN = r'^\/cancel\s+(all)|(\d+)$'
 
 
-def cancel_handler(bot, scheduler, message):
+def cancel_reminders(bot, scheduler, message):
     cancellation_target = parse_cancel_command(message.text)
     if cancellation_target is None:
         return send_error_message(bot, message)
