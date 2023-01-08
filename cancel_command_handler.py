@@ -1,6 +1,4 @@
 import re
-
-import message_parser
 import messages
 from messages import UNKNOWN_JOB_FORMAT, ALL_JOBS_CANCELED
 from apscheduler.jobstores.base import JobLookupError
