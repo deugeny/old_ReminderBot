@@ -21,16 +21,8 @@ job_defaults = {
 MINIMUM_SCHEDULING_PERIOD = timedelta(minutes=1)
 
 
-def is_valid_start_date(start_at: datetime):
+def is_valid_start_datetime(start_at: datetime):
     return (start_at is not None) and (start_at <= (datetime.now() + MINIMUM_SCHEDULING_PERIOD))
-
-
-def schedule_remind(bot: TeleBot, scheduler: BackgroundScheduler, message):
-    (start_at, text, trouble_ticket) = parse_remind_message(message.text)
-    if is_valid_start_date(start_at):
-        scheduler.add_job(send_message, 'date', run_date=start_at, args=[bot, message.chat.id, text])
-        return True
-    return False
 
 
 logging.basicConfig()

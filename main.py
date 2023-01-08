@@ -1,4 +1,5 @@
 from cancel_command_handler import cancel_reminders
+from message_command_handler import schedule_remind
 import messages
 from scheduler import scheduler
 from bot import bot
@@ -6,7 +7,7 @@ from bot import bot
 
 @bot.message_handler(commands=['remind'])
 def remind_handler(message):
-    bot.reply_to(message, messages.REMIND_MESSAGE)
+    schedule_remind(bot, scheduler, message)
 
 
 @bot.message_handler(commands=['cancel'])

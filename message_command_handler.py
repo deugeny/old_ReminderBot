@@ -1,14 +1,30 @@
 import re
 from datetime import datetime
 
+import messages
+from scheduler import is_valid_start_datetime
+from bot import send_message
 import datefinder
 
 from config import DATE_FIRST_PART_KIND
+from messages import ERROR_DATETIME, CONFIRMATION_MESSAGE
 
 REMIND_COMMANDS = ('/remind',)
 
 # trouble ticket number regular expression pattern
 TROUBLE_TICKET_NUMBER_PATTERN = r'\d{8}'
+
+
+def schedule_remind(bot, scheduler, message):
+    (start_at, text, trouble_ticket) = parse_remind_message(message.text)
+    if not is_valid_start_datetime(start_at):
+        bot.reply_to(message, ERROR_DATETIME)
+        bot.reply_to(message, messages.REMIND_MESSAGE)
+        return False
+    scheduler.add_job(send_message, 'date', run_date=start_at, args=[bot, message.chat.id, text])
+    cancel_message = format(CONFIRMATION_MESSAGE, message.id)
+    bot.reply_to(message, cancel_message)
+    return True
 
 
 def parse_remind_message(message, commands=REMIND_COMMANDS):
@@ -42,5 +58,3 @@ def try_get_trouble_ticket_number(text):
 def try_get_datetime_from_message(text, base_date=None):
     dates = list(datefinder.find_dates(text, first=DATE_FIRST_PART_KIND, base_date=base_date))
     return dates[0] if len(dates) > 0 else None
-
-
