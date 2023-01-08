@@ -27,7 +27,7 @@ def cancel_remind(bot, scheduler, remind_id, message):
         scheduler.remove_job(job_id=remind_id)
         return True
     except JobLookupError:
-        bot.reply_to(message, format(UNKNOWN_JOB_FORMAT, remind_id))
+        bot.reply_to(message, UNKNOWN_JOB_FORMAT.format(remind_id))
     return False
 
 

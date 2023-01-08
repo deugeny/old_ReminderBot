@@ -13,5 +13,5 @@ commands = [
 bot.set_my_commands(commands=commands)
 
 
-def send_message(tbot, chat_id, text):
-    tbot.send_message(chat_id, text)
+def send_message(chat_id, text):
+    bot.send_message(chat_id, text)

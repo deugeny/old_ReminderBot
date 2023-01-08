@@ -18,7 +18,7 @@ job_defaults = {
     'max_instances': JOB_MAX_INSTANCES
 }
 
-MINIMUM_SCHEDULING_PERIOD = timedelta(minutes=1)
+MINIMUM_SCHEDULING_PERIOD = timedelta(seconds=30)
 
 
 def is_valid_start_datetime(start_at: datetime):

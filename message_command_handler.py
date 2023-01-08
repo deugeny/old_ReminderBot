@@ -21,8 +21,8 @@ def schedule_remind(bot, scheduler, message):
         bot.reply_to(message, ERROR_DATETIME)
         bot.reply_to(message, messages.REMIND_MESSAGE)
         return False
-    scheduler.add_job(send_message, 'date', run_date=start_at, args=[bot, message.chat.id, text])
-    cancel_message = format(CONFIRMATION_MESSAGE, message.id)
+    scheduler.add_job(send_message, 'date', run_date=start_at, id=str(message.id), args=[message.chat.id, text])
+    cancel_message = CONFIRMATION_MESSAGE.format(start_at, message.id)
     bot.reply_to(message, cancel_message)
     return True
 

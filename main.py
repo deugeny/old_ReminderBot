@@ -20,4 +20,4 @@ def start_handler(message):
     send_help(bot, message)
 
 
-bot.polling(none_stop=True, interval=0)
+bot.infinity_polling(none_stop=True, interval=0)
