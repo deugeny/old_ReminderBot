@@ -9,7 +9,7 @@ DATABASE_CONNECTION_STRING = os.getenv('REMINDER_BOT_CONNECTION_STRING', default
 # Вид первого числа в формате даты. День или месяц.
 DATE_FIRST_PART_KIND = os.getenv('REMINDER_BOT_DATE_FIRST_PART_KIND', default='day')
 
-JOB_MAX_INSTANCES = os.getenv('REMINDER_BOT_JOB_MAX_INSTANCES', default=3)
+JOB_MAX_INSTANCES = os.getenv('REMINDER_BOT_JOB_MAX_INSTANCES', default=20)
 
 THREAD_POOL_EXECUTORS_COUNT = os.getenv('REMINDER_BOT_THREAD_POOL_EXECUTORS_COUNT', default=20)
 

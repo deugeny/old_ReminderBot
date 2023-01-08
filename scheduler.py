@@ -22,7 +22,7 @@ MINIMUM_SCHEDULING_PERIOD = timedelta(minutes=1)
 
 
 def is_valid_start_datetime(start_at: datetime):
-    return (start_at is not None) and (start_at <= (datetime.now() + MINIMUM_SCHEDULING_PERIOD))
+    return (start_at is not None) and (start_at > (datetime.now() + MINIMUM_SCHEDULING_PERIOD))
 
 
 logging.basicConfig()
