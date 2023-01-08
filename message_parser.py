@@ -3,11 +3,12 @@ from datetime import datetime
 
 import datefinder
 
-from config import TROUBLE_TICKET_NUMBER_PATTERN, DATE_FIRST_PART_KIND
+from config import DATE_FIRST_PART_KIND
 
 REMIND_COMMANDS = ('/remind',)
 
-CANCEL_COMMAND_PATTERN = r'^\/cancel\s+(all)|(\d+)$'
+# trouble ticket number regular expression pattern
+TROUBLE_TICKET_NUMBER_PATTERN = r'\d{8}'
 
 
 def parse_remind_message(message, commands=REMIND_COMMANDS):
@@ -43,6 +44,3 @@ def try_get_datetime_from_message(text, base_date=None):
     return dates[0] if len(dates) > 0 else None
 
 
-def parse_cancel_command(text):
-    match = re.search(CANCEL_COMMAND_PATTERN, text)
-    return match[match.lastindex] if match else None

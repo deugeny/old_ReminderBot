@@ -10,5 +10,10 @@ commands = [
     telebot.types.BotCommand("cancel", messages.CANCEL_COMMAND_DESCRIPTION),
 ]
 
+
+def send_message(chat_id, text):
+    bot.send_message(chat_id, text)
+
+
 bot.set_my_commands(commands=commands)
 bot.polling(none_stop=True, interval=0)

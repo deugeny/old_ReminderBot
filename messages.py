@@ -16,3 +16,6 @@ CANCEL_MESSAGE = "/cancel [id|all] используйте для отмены н
 HELP_COMMAND_DESCRIPTION = "Получение справки по работе с ботом."
 REMIND_COMMAND_DESCRIPTION = "Установка напоминаний"
 CANCEL_COMMAND_DESCRIPTION = "Отмена напоминаний"
+INVALID_ARGUMENT = "Ошибочный аргумент. "
+UNKNOWN_JOB_FORMAT = 'Не найдено напоминание с id={0}'
+ALL_JOBS_CANCELED = "Произведена отмена всех напоминаний"
