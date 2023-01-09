@@ -25,7 +25,7 @@ def is_valid_start_datetime(start_at: datetime):
     return (start_at is not None) and (start_at > (datetime.now() + MINIMUM_SCHEDULING_PERIOD))
 
 
+scheduler = BackgroundScheduler(jobstores=job_stores, executors=executors, job_defaults=job_defaults)
+
 logging.basicConfig()
 logging.getLogger('apscheduler').setLevel(logging.DEBUG)
-scheduler = BackgroundScheduler(jobstores=job_stores, executors=executors, job_defaults=job_defaults)
-scheduler.start()

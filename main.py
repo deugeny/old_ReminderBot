@@ -20,4 +20,6 @@ def start_handler(message):
     send_help(bot, message)
 
 
-bot.infinity_polling(none_stop=True, interval=0)
+if __name__ == '__main__':
+    scheduler.start()
+    bot.infinity_polling(none_stop=True, interval=0)

@@ -1,5 +1,5 @@
 import re
-from datetime import datetime
+from datetime import datetime, date, time
 
 import messages
 from scheduler import is_valid_start_datetime
@@ -13,6 +13,10 @@ REMIND_COMMANDS = ('/remind',)
 
 # trouble ticket number regular expression pattern
 TROUBLE_TICKET_NUMBER_PATTERN = r'\d{8}'
+
+ZERO_DATE: date = date.min
+ZERO_TIME: time = time.min
+DEFAULT_DATE: datetime = datetime.combine(date=ZERO_DATE, time=ZERO_TIME)
 
 
 def schedule_remind(bot, scheduler, message):
@@ -45,7 +49,7 @@ def parse_remind_message(message, commands=REMIND_COMMANDS):
     for command in commands:
         text = text.replace(command, '')
     text = text.strip()
-    start_at = try_get_datetime_from_message(text, base_date=datetime.today())
+    start_at = try_get_datetime_from_message(text)
     trouble_ticket = try_get_trouble_ticket_number(text)
     return start_at, text, trouble_ticket
 
@@ -55,6 +59,29 @@ def try_get_trouble_ticket_number(text):
     return numbers_match[0] if numbers_match else None
 
 
-def try_get_datetime_from_message(text, base_date=None):
-    dates = list(datefinder.find_dates(text, first=DATE_FIRST_PART_KIND, base_date=base_date))
-    return dates[0] if len(dates) > 0 else None
+def try_get_datetime_from_message(text):
+    datetime_from_text = list(datefinder.find_dates(text, first=DATE_FIRST_PART_KIND, base_date=DEFAULT_DATE))
+    if len(datetime_from_text) == 0:
+        return None
+
+    candidate_date = None
+    candidate_time = None
+
+    for candidate in datetime_from_text:
+        date_part = candidate.date()
+        time_part = candidate.time()
+        if date_part != ZERO_DATE and time_part != ZERO_TIME:
+            return candidate
+
+        if date_part == ZERO_DATE:
+            candidate_time = time_part
+        if time_part == ZERO_TIME:
+            candidate_date = date_part
+
+    if candidate_time is None:
+        return None
+
+    if candidate_date is None:
+        candidate_date = datetime.today().date()
+
+    return datetime.combine(candidate_date, candidate_time)
