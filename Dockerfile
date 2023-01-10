@@ -12,11 +12,15 @@ ENV REMINDER_BOT_PROCESS_POOL_EXECUTORS_COUNT=5
 COPY pip_requirements.txt ./
 RUN pip install --no-cache-dir -r pip_requirements.txt
 
+RUN apk add --no-cache tzdata
 ENV TZ=Europe/Moscow
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+RUN cp /usr/share/zoneinfo/Europe/Moscow /etc/localtime
 
-#RUN pip install -U pip aiogram pytz && apt-get update && apt-get install sqlite3
-RUN apt-get update && apt-get install sqlite3
+#UBUNTU
+#RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+RUN apk update && apk upgrade
+RUN apk add --no-cache sqlite
+
 COPY *.py ./
 
 ENTRYPOINT ["python", "main.py"]
