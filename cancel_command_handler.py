@@ -2,7 +2,6 @@ import re
 import messages
 from messages import UNKNOWN_JOB_FORMAT, ALL_JOBS_CANCELED
 from apscheduler.jobstores.base import JobLookupError
-
 CANCEL_COMMAND_PATTERN = r'^\/cancel\s+(all)|(\d+)$'
 
 
@@ -40,3 +39,6 @@ def cancel_all_remind(bot, scheduler, message):
 def parse_cancel_command(text):
     match = re.search(CANCEL_COMMAND_PATTERN, text)
     return match[match.lastindex] if match else None
+
+
+

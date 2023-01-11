@@ -5,6 +5,8 @@ import messages
 from scheduler import is_valid_start_datetime
 from bot import send_message
 import datefinder
+from telebot import types
+from filters import cancel_remind_id
 
 from config import DATE_FIRST_PART_KIND
 from messages import ERROR_DATETIME, CONFIRMATION_MESSAGE
@@ -27,7 +29,10 @@ def schedule_remind(bot, scheduler, message):
         return False
     scheduler.add_job(send_message, 'date', run_date=start_at, id=str(message.id), args=[message.chat.id, text])
     cancel_message = CONFIRMATION_MESSAGE.format(start_at, message.id)
-    bot.reply_to(message, cancel_message)
+    cancel_markup = types.InlineKeyboardMarkup()
+    cancel_markup.row(types.InlineKeyboardButton("Cancel",
+                                            callback_data=cancel_remind_id.new(id=message.id)))
+    bot.reply_to(message, cancel_message, parse_mode="markdown", reply_markup=cancel_markup)
     return True
 
 

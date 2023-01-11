@@ -1,5 +1,5 @@
 import telebot
-
+from filters import ParsePrefix
 import config
 import messages
 
@@ -11,6 +11,7 @@ commands = [
 ]
 
 bot.set_my_commands(commands=commands)
+bot.add_custom_filter(ParsePrefix())
 
 
 def send_message(chat_id, text):
