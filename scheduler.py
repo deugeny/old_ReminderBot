@@ -1,4 +1,4 @@
-from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from apscheduler.executors.pool import ThreadPoolExecutor, ProcessPoolExecutor
 from config import DATABASE_CONNECTION_STRING, JOB_MAX_INSTANCES, THREAD_POOL_EXECUTORS_COUNT, \
@@ -25,7 +25,9 @@ def is_valid_start_datetime(start_at: datetime):
     return (start_at is not None) and (start_at > (datetime.now() + MINIMUM_SCHEDULING_PERIOD))
 
 
-scheduler = BackgroundScheduler(jobstores=job_stores, executors=executors, job_defaults=job_defaults)
+scheduler = AsyncIOScheduler(jobstores=job_stores, job_defaults=job_defaults)
+
+# scheduler = BackgroundScheduler(jobstores=job_stores, executors=executors, job_defaults=job_defaults)
 
 logging.basicConfig()
 logging.getLogger('apscheduler').setLevel(logging.DEBUG)

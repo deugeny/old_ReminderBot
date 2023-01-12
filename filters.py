@@ -1,5 +1,4 @@
-from telebot.custom_filters import SimpleCustomFilter
-from telebot import types, AdvancedCustomFilter
+from telebot.asyncio_filters import types, AdvancedCustomFilter
 from telebot.callback_data import CallbackData, CallbackDataFilter
 
 
@@ -11,7 +10,7 @@ from telebot.callback_data import CallbackData, CallbackDataFilter
 class ParsePrefix(AdvancedCustomFilter):
     key = 'parse_prefix'
 
-    def check(self, call: types.CallbackQuery, config: CallbackDataFilter):
+    async def check(self, call: types.CallbackQuery, config: CallbackDataFilter):
         return config.check(query=call)
 
 
