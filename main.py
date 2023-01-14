@@ -1,5 +1,5 @@
 from handlers.cancel_command_handler import cancel_reminders
-from handlers.message_command_handler import schedule_remind
+from handlers.remind_command_handler import schedule_remind
 from handlers.welcome_message_handler import send_welcome_message
 from handlers.help_command_handler import send_help
 from scheduler import scheduler
