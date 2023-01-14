@@ -1,6 +1,6 @@
 from telebot.async_telebot import AsyncTeleBot
 from telebot import types
-from filters import cancel_remind_id
+from callbacks.filters import cancel_remind_id
 from scheduler import scheduler
 from handlers.cancel_command_handler import cancel_remind
 
