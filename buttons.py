@@ -1,6 +1,6 @@
 from telebot import types
 
-from filters import help_id, HELP_REMIND_ID, HELP_CANCEL_ID, HELP_HELP_ID, cancel_remind_id
+from callbacks.filters import help_id, HELP_REMIND_ID, HELP_CANCEL_ID, HELP_HELP_ID, cancel_remind_id
 
 HELP_CANCEL_COMMAND_BUTTON = 'help для cancel'
 HELP_HELP_COMMAND_BUTTON = 'help для help'

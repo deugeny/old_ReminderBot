@@ -1,11 +1,11 @@
 from telebot.async_telebot import AsyncTeleBot
 from telebot import types
 
-from cancel_callback import cancel_remind_callback
-from filters import ParsePrefix, cancel_remind_id, help_id
+from callbacks.cancel_callback import cancel_remind_callback
+from callbacks.filters import ParsePrefix, cancel_remind_id, help_id
 import config
 import messages
-from help_callback import help_callback
+from callbacks.help_callback import help_callback
 
 bot = AsyncTeleBot(config.API_TOKEN)
 
