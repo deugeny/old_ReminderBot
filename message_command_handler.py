@@ -1,17 +1,14 @@
 import re
 from datetime import datetime, date, time
 
-import messages
+from buttons import create_cancel_button, create_remind_help_button
 from scheduler import is_valid_start_datetime
 from bot import send_message
 import datefinder
 from telebot import types
-from filters import cancel_remind_id
 
 from config import DATE_FIRST_PART_KIND
 from messages import ERROR_DATETIME, CONFIRMATION_MESSAGE
-
-CANCEL_BUTTON_CAPTION = "Отменить"
 
 REMIND_COMMANDS = ('/remind',)
 
@@ -23,11 +20,17 @@ ZERO_TIME: time = time.min
 DEFAULT_DATE: datetime = datetime.combine(date=ZERO_DATE, time=ZERO_TIME)
 
 
+def create_help_remind_markup():
+    help_markup = types.InlineKeyboardMarkup()
+    help_markup.row(create_remind_help_button())
+    return help_markup
+
+
 async def schedule_remind(bot, scheduler, message):
     (start_at, text, trouble_ticket) = parse_remind_message(message.text)
     if not is_valid_start_datetime(start_at):
-        await bot.reply_to(message, ERROR_DATETIME)
-        await bot.reply_to(message, messages.REMIND_MESSAGE)
+        help_markup = create_help_remind_markup()
+        await bot.reply_to(message, ERROR_DATETIME, parse_mode="markdown", reply_markup=help_markup)
         return False
 
     scheduler.add_job(send_message, 'date', run_date=start_at, id=str(message.id), args=[message.chat.id, text])
@@ -38,14 +41,13 @@ async def schedule_remind(bot, scheduler, message):
 
 async def send_confirmation_message(bot, message, start_at):
     confirmation_message = CONFIRMATION_MESSAGE.format(start_at, message.id)
-    cancel_markup = await create_cancel_button(message)
+    cancel_markup = create_cancel_markup(message)
     await bot.reply_to(message, confirmation_message, parse_mode="markdown", reply_markup=cancel_markup)
 
 
-async def create_cancel_button(message):
+def create_cancel_markup(message):
     cancel_markup = types.InlineKeyboardMarkup()
-    cancel_markup.row(types.InlineKeyboardButton(CANCEL_BUTTON_CAPTION,
-                                                 callback_data=cancel_remind_id.new(id=message.id)))
+    cancel_markup.row(create_cancel_button(message.id))
     return cancel_markup
 
 

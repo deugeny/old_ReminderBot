@@ -1,12 +1,9 @@
 import re
 import messages
-from telebot import types
-from filters import help_id, HELP_HELP_ID, HELP_CANCEL_ID, HELP_REMIND_ID
+
+from buttons import create_help_buttons
 
 HELP_COMMAND_PATTERN = r'^\/help\s+[\/]*(remind|cancel|help)$'
-HELP_CANCEL_COMMAND_BUTTON = 'help для cancel'
-HELP_HELP_COMMAND_BUTTON = 'help для help'
-HELP_REMIND_COMMAND_BUTTON = 'help для remind'
 
 
 async def send_help(bot, message):
@@ -29,24 +26,6 @@ def parse_help_command(text):
         command = '/' + command
 
     return command
-
-
-async def create_help_buttons():
-    help_markup = types.InlineKeyboardMarkup()
-    # help_markup.row(types.InlineKeyboardButton(HELP_HELP_COMMAND_BUTTON,
-    #                                            callback_data=help_id.new(id=HELP_HELP_ID)))
-    # help_markup.row(types.InlineKeyboardButton(HELP_CANCEL_COMMAND_BUTTON,
-    #                                            callback_data=help_id.new(id=HELP_CANCEL_ID)))
-    # help_markup.row(types.InlineKeyboardButton(HELP_REMIND_COMMAND_BUTTON,
-    #                                            callback_data=help_id.new(id=HELP_REMIND_ID)))
-
-    help_markup.row(types.InlineKeyboardButton(HELP_HELP_COMMAND_BUTTON, callback_data=help_id.new(id=HELP_HELP_ID)),
-                     types.InlineKeyboardButton(HELP_CANCEL_COMMAND_BUTTON,
-                                                callback_data=help_id.new(id=HELP_CANCEL_ID)),
-                     types.InlineKeyboardButton(HELP_REMIND_COMMAND_BUTTON,
-                                                callback_data=help_id.new(id=HELP_REMIND_ID)))
-
-    return help_markup
 
 
 async def send_help_for_remind(bot, message):
