@@ -1,12 +1,9 @@
 from cancel_command_handler import cancel_reminders
 from message_command_handler import schedule_remind
 from welcome_message_handler import send_welcome_message
-from cancel_callback import cancel_remind_callback
-from help_callback import help_callback
-from filters import cancel_remind_id, help_id
 from help_command_handler import send_help
 from scheduler import scheduler
-from bot import bot, init_bot_commands
+from bot import bot, init_bot_commands, register_callback_handlers
 import asyncio
 
 
@@ -32,13 +29,11 @@ async def start_handler(message):
 
 async def main():
     scheduler.start()
-    bot.register_callback_query_handler(cancel_remind_callback, func=None, pass_bot=True,
-                                        parse_prefix=cancel_remind_id.filter())
-    bot.register_callback_query_handler(help_callback, func=None, pass_bot=True,
-                                        parse_prefix=help_id.filter())
+    register_callback_handlers(bot)
 
     await init_bot_commands(bot)
     await asyncio.gather(bot.polling())
+
 
 if __name__ == '__main__':
     try:
