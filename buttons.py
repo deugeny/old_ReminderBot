@@ -8,7 +8,7 @@ HELP_REMIND_COMMAND_BUTTON = 'help для remind'
 CANCEL_BUTTON_CAPTION = "Отменить"
 
 
-async def create_help_buttons():
+def create_help_buttons():
     help_markup = types.InlineKeyboardMarkup()
     help_markup.row(create_help_button(),  create_cancel_help_button(), create_remind_help_button())
     return help_markup

@@ -29,15 +29,15 @@ def parse_help_command(text):
 
 
 async def send_help_for_remind(bot, message):
-    markup = await create_help_buttons()
-    await bot.reply_to(message, messages.REMIND_MESSAGE, parse_mode="markdown", reply_markup=markup)
+    markup = create_help_buttons()
+    await bot.send_message(message.chat.id, messages.REMIND_MESSAGE, parse_mode="markdown", reply_markup=markup)
 
 
 async def send_help_for_help(bot, message):
-    markup = await create_help_buttons()
-    await bot.reply_to(message, messages.HELP_MESSAGE, parse_mode="markdown", reply_markup=markup)
+    markup = create_help_buttons()
+    await bot.send_message(message.chat.id, messages.HELP_MESSAGE, parse_mode="markdown", reply_markup=markup)
 
 
 async def send_help_for_cancel(bot, message):
-    markup = await create_help_buttons()
-    await bot.reply_to(message, messages.CANCEL_MESSAGE, parse_mode="markdown", reply_markup=markup)
+    markup = create_help_buttons()
+    await bot.send_message(message.chat.id, messages.CANCEL_MESSAGE, parse_mode="markdown", reply_markup=markup)
