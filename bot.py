@@ -7,6 +7,7 @@ import messages
 bot = AsyncTeleBot(config.API_TOKEN)
 
 commands = [
+        types.BotCommand("start", messages.HELP_COMMAND_DESCRIPTION),
         types.BotCommand("help", messages.HELP_COMMAND_DESCRIPTION),
         types.BotCommand("remind", messages.REMIND_COMMAND_DESCRIPTION),
         types.BotCommand("cancel all", messages.CANCEL_COMMAND_DESCRIPTION),
