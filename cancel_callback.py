@@ -2,7 +2,7 @@ from telebot.async_telebot import AsyncTeleBot
 from telebot import types
 from filters import cancel_remind_id
 from scheduler import scheduler
-from cancel_command_handler import cancel_remind
+from handlers.cancel_command_handler import cancel_remind
 
 
 async def cancel_remind_callback(call: types.CallbackQuery, bot: AsyncTeleBot):

@@ -1,7 +1,7 @@
 from telebot.async_telebot import AsyncTeleBot
 from telebot import types
-from filters import help_id, HELP_REMIND_ID, HELP_CANCEL_ID, HELP_HELP_ID
-from help_command_handler import send_help_for_help, send_help_for_remind, send_help_for_cancel, send_help
+from filters import help_id, HELP_REMIND_ID, HELP_CANCEL_ID
+from handlers.help_command_handler import send_help_for_help, send_help_for_remind, send_help_for_cancel
 
 
 async def help_callback(call: types.CallbackQuery, bot: AsyncTeleBot):

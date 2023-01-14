@@ -1,5 +1,5 @@
 import unittest
-from  message_command_handler import parse_remind_message
+from handlers.message_command_handler import parse_remind_message
 from datetime import datetime
 
 

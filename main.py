@@ -1,7 +1,7 @@
-from cancel_command_handler import cancel_reminders
-from message_command_handler import schedule_remind
+from handlers.cancel_command_handler import cancel_reminders
+from handlers.message_command_handler import schedule_remind
 from welcome_message_handler import send_welcome_message
-from help_command_handler import send_help
+from handlers.help_command_handler import send_help
 from scheduler import scheduler
 from bot import bot, init_bot_commands, register_callback_handlers
 import asyncio

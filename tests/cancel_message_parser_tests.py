@@ -1,6 +1,6 @@
 import unittest
 
-import cancel_command_handler
+from handlers import cancel_command_handler
 
 
 class CancelMessageParsingTestCase(unittest.TestCase):
