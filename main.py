@@ -3,7 +3,7 @@ from handlers.remind_command_handler import schedule_remind
 from handlers.welcome_message_handler import send_welcome_message
 from handlers.help_command_handler import send_help
 from scheduler import scheduler
-from bot import bot, init_bot_commands, register_callback_handlers
+from bot import bot, init_bot
 import asyncio
 
 
@@ -29,10 +29,7 @@ async def start_handler(message):
 
 async def main():
     scheduler.start()
-    register_callback_handlers(bot)
-
-    await init_bot_commands(bot)
-    await asyncio.gather(bot.polling())
+    await init_bot()
 
 
 if __name__ == '__main__':

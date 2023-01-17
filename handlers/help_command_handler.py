@@ -1,43 +1,37 @@
 import re
-import messages
+from typing import Union
 
+import messages
 from buttons import create_help_buttons
+from telebot.async_telebot import AsyncTeleBot
+from telebot import types
+
 
 HELP_COMMAND_PATTERN = r'^\/help\s+[\/]*(remind|cancel|help)$'
 
+HELP_MESSAGES = {
+    "/cancel": messages.CANCEL_MESSAGE,
+    "/help": messages.HELP_MESSAGE,
+    '/remind': messages.REMIND_MESSAGE
+}
 
-async def send_help(bot, message):
+
+async def send_help(bot: AsyncTeleBot, message: types.Message) -> None:
     command = parse_help_command(message.text)
-
-    if command == '/cancel':
-        await send_help_for_cancel(bot, message)
-
-    if command == '/help':
-        await send_help_for_help(bot, message)
-
-    if command == '/remind':
-        await send_help_for_remind(bot, message)
+    help_message_text = HELP_MESSAGES.get(command)
+    if help_message_text is not None:
+        await _send_help_message(bot, message.chat.id, help_message_text)
 
 
-def parse_help_command(text):
-    match = re.search(HELP_COMMAND_PATTERN, text)
+def parse_help_command(text: str) -> str:
+    match = re.search(HELP_COMMAND_PATTERN, text, flags=re.IGNORECASE)
     command = match[match.lastindex] if match else '/help'
     if not command.startswith('/'):
         command = '/' + command
 
-    return command
+    return command.lower()
 
 
-async def send_help_for_remind(bot, message):
+async def _send_help_message(bot: AsyncTeleBot, chat_id: Union[int, str], help_message_text: str) -> None:
     markup = create_help_buttons()
-    await bot.send_message(message.chat.id, messages.REMIND_MESSAGE, parse_mode="markdown", reply_markup=markup)
-
-
-async def send_help_for_help(bot, message):
-    markup = create_help_buttons()
-    await bot.send_message(message.chat.id, messages.HELP_MESSAGE, parse_mode="markdown", reply_markup=markup)
-
-
-async def send_help_for_cancel(bot, message):
-    markup = create_help_buttons()
-    await bot.send_message(message.chat.id, messages.CANCEL_MESSAGE, parse_mode="markdown", reply_markup=markup)
+    await bot.send_message(chat_id, help_message_text, parse_mode="markdown", reply_markup=markup)
