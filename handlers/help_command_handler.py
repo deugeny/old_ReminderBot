@@ -20,7 +20,7 @@ async def send_help(bot: AsyncTeleBot, message: types.Message) -> None:
     command = parse_help_command(message.text)
     help_message_text = HELP_MESSAGES.get(command)
     if help_message_text is not None:
-        await _send_help_message(bot, message.chat.id, help_message_text)
+        await send_help_message(bot, message.chat.id, help_message_text)
 
 
 def parse_help_command(text: str) -> str:
@@ -32,6 +32,6 @@ def parse_help_command(text: str) -> str:
     return command.lower()
 
 
-async def _send_help_message(bot: AsyncTeleBot, chat_id: Union[int, str], help_message_text: str) -> None:
+async def send_help_message(bot: AsyncTeleBot, chat_id: Union[int, str], help_message_text: str) -> None:
     markup = create_help_buttons()
     await bot.send_message(chat_id, help_message_text, parse_mode="markdown", reply_markup=markup)

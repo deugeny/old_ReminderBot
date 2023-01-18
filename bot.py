@@ -2,15 +2,15 @@ import asyncio
 from typing import Union
 
 from telebot.async_telebot import AsyncTeleBot
-from telebot import types
+from telebot import types, asyncio_filters
+from telebot.asyncio_storage import StateMemoryStorage
 
-from callbacks.cancel_callback import cancel_remind_callback
 from callbacks.filters import ParsePrefix, cancel_remind_id, help_id
 import config
 import messages
 from callbacks.help_callback import help_callback
 
-bot = AsyncTeleBot(config.API_TOKEN)
+bot = AsyncTeleBot(config.API_TOKEN, state_storage=StateMemoryStorage())
 
 commands = [
     types.BotCommand("start", messages.HELP_COMMAND_DESCRIPTION),
@@ -32,13 +32,17 @@ async def send_message(chat_id: Union[int, str], text: str) -> None:
 
 
 def register_callback_handlers(bot: AsyncTeleBot) -> None:
-    bot.register_callback_query_handler(cancel_remind_callback, func=None, pass_bot=True,
-                                        parse_prefix=cancel_remind_id.filter())
-    bot.register_callback_query_handler(help_callback, func=None, pass_bot=True,
+    bot.register_callback_query_handler(help_callback, pass_bot=True, func=None,
                                         parse_prefix=help_id.filter())
 
 
-async def init_bot():
+async def init_bot() -> None:
+    await register_filters(bot)
     register_callback_handlers(bot)
     await init_bot_commands(bot)
     await asyncio.gather(bot.polling())
+
+
+async def register_filters(bot: AsyncTeleBot) -> None:
+    bot.add_custom_filter(asyncio_filters.StateFilter(bot))
+    bot.add_custom_filter(asyncio_filters.IsDigitFilter())
