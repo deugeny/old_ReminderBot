@@ -1,7 +1,7 @@
 import re
 from typing import Union
 
-import messages
+from messages import ERROR_MESSAGE, REQUEST_CANCELLATION_TARGET_MESSAGE
 from telebot.async_telebot import AsyncTeleBot
 from telebot import types
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -10,10 +10,6 @@ from apscheduler.jobstores.base import JobLookupError
 from scheduler import scheduler
 from bot import bot
 from CurrentState import CurrentState
-
-ERROR_MESSAGE = "Произошла ошибка"
-
-REQUEST_CANCELLATION_TARGET_MESSAGE = 'Укажите номер отменяемого задания или all для отмены всех заданий?'
 
 CANCEL_COMMAND_PATTERN = r'^\/cancel\s+(all)|(\d+)$'
 
