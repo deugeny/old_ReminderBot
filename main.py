@@ -13,11 +13,6 @@ async def remind_handler(message):
     await send_welcome_message(bot, message)
 
 
-@bot.message_handler(commands=['remind'])
-async def remind_handler(message):
-    await schedule_remind(bot, scheduler, message)
-
-
 @bot.message_handler(commands=['help'])
 async def start_handler(message):
     await send_help(bot, message)

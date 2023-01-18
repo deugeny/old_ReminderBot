@@ -27,10 +27,6 @@ async def init_bot_commands(bot: AsyncTeleBot) -> None:
     bot.add_custom_filter(ParsePrefix())
 
 
-async def send_message(chat_id: Union[int, str], text: str) -> None:
-    await bot.send_message(chat_id, text)
-
-
 def register_callback_handlers(bot: AsyncTeleBot) -> None:
     bot.register_callback_query_handler(help_callback, pass_bot=True, func=None,
                                         parse_prefix=help_id.filter())

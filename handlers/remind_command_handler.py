@@ -1,11 +1,14 @@
 import re
 from datetime import datetime, date, time
+from typing import Union
 
 from buttons import create_cancel_button, create_remind_help_button
-from scheduler import is_valid_start_datetime
-from bot import send_message
+from scheduler import scheduler, is_valid_start_datetime
+from bot import bot
 import datefinder
 from telebot import types
+from telebot.async_telebot import AsyncTeleBot
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from config import DATE_FIRST_PART_KIND
 from messages import ERROR_DATETIME, CONFIRMATION_MESSAGE
@@ -20,35 +23,50 @@ ZERO_TIME: time = time.min
 DEFAULT_DATE: datetime = datetime.combine(date=ZERO_DATE, time=ZERO_TIME)
 
 
-def create_help_remind_markup():
-    help_markup = types.InlineKeyboardMarkup()
-    help_markup.row(create_remind_help_button())
-    return help_markup
+class ReminderHandler:
+    def __init__(self, bot: AsyncTeleBot, scheduler: AsyncIOScheduler):
+        self.__scheduler = scheduler
+        self.__bot = bot
+        self.__bot.register_message_handler(commands=['remind'], callback=self.__remind_handler)
+
+    async def __remind_handler(self, message: types.Message):
+        await self.schedule_remind(message)
+
+    @staticmethod
+    def __create_help_remind_markup():
+        help_markup = types.InlineKeyboardMarkup()
+        help_markup.row(create_remind_help_button())
+        return help_markup
+
+    async def schedule_remind(self, message: types.Message) -> bool:
+        (start_at, text, trouble_ticket) = parse_remind_message(message.text)
+        if not is_valid_start_datetime(start_at):
+            help_markup = ReminderHandler.__create_help_remind_markup()
+            await self.__bot.reply_to(message, ERROR_DATETIME, parse_mode="markdown", reply_markup=help_markup)
+            return False
+
+        self.__scheduler.add_job(self.__send_message, 'date', run_date=start_at, id=str(message.id),
+                                 args=[message.chat.id, text])
+
+        await self.__send_confirmation_message(message, start_at)
+        return True
+
+    async def __send_confirmation_message(self, message: types.Message, start_at: datetime) -> None:
+        confirmation_message = CONFIRMATION_MESSAGE.format(start_at, message.id)
+        cancel_markup = ReminderHandler.__create_cancel_markup(message)
+        await self.__bot.reply_to(message, confirmation_message, parse_mode="markdown", reply_markup=cancel_markup)
+
+    @staticmethod
+    def __create_cancel_markup(message: types.Message):
+        cancel_markup = types.InlineKeyboardMarkup()
+        cancel_markup.row(create_cancel_button(message.id))
+        return cancel_markup
+
+    async def __send_message(self, chat_id: Union[int, str], text: str) -> None:
+        await self.__bot.send_message(chat_id, text)
 
 
-async def schedule_remind(bot, scheduler, message):
-    (start_at, text, trouble_ticket) = parse_remind_message(message.text)
-    if not is_valid_start_datetime(start_at):
-        help_markup = create_help_remind_markup()
-        await bot.reply_to(message, ERROR_DATETIME, parse_mode="markdown", reply_markup=help_markup)
-        return False
-
-    scheduler.add_job(send_message, 'date', run_date=start_at, id=str(message.id), args=[message.chat.id, text])
-
-    await send_confirmation_message(bot, message, start_at)
-    return True
-
-
-async def send_confirmation_message(bot, message, start_at):
-    confirmation_message = CONFIRMATION_MESSAGE.format(start_at, message.id)
-    cancel_markup = create_cancel_markup(message)
-    await bot.reply_to(message, confirmation_message, parse_mode="markdown", reply_markup=cancel_markup)
-
-
-def create_cancel_markup(message):
-    cancel_markup = types.InlineKeyboardMarkup()
-    cancel_markup.row(create_cancel_button(message.id))
-    return cancel_markup
+remind_handler = ReminderHandler(bot, scheduler)
 
 
 def parse_remind_message(message, commands=REMIND_COMMANDS):
