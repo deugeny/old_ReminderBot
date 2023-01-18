@@ -1,4 +1,6 @@
 import re
+from typing import Union
+
 import messages
 from telebot.async_telebot import AsyncTeleBot
 from telebot import types
@@ -55,7 +57,7 @@ class CancelHandler:
             await self.bot.delete_state(message.from_user.id, message.chat.id)
             await self.bot.reply_to(message, ERROR_MESSAGE)
 
-    async def __cancel_remind_by_id(self, remind_id, message):
+    async def __cancel_remind_by_id(self, remind_id: str, message: types.Message) -> None:
         try:
             self.scheduler.remove_job(job_id=remind_id)
         except JobLookupError:
@@ -63,7 +65,7 @@ class CancelHandler:
         finally:
             await self.bot.delete_state(message.from_user.id, message.chat.id)
 
-    async def __cancel_all_remind(self, message):
+    async def __cancel_all_remind(self, message: types.Message) -> None:
         try:
             self.scheduler.remove_all_jobs()
             await self.bot.reply_to(message, ALL_JOBS_CANCELED)
@@ -72,9 +74,9 @@ class CancelHandler:
             await self.bot.delete_state(message.from_user.id, message.chat.id)
 
 
-def parse_cancel_command(text):
+def parse_cancel_command(text: str) -> Union[str, None]:
     match = re.search(CANCEL_COMMAND_PATTERN, text, flags=re.IGNORECASE)
     return match[match.lastindex] if match else None
 
 
-cancel_handler = CancelHandler(bot, scheduler)
+cancel_handler: CancelHandler = CancelHandler(bot, scheduler)
