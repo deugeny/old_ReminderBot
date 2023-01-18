@@ -44,10 +44,10 @@ class CancelHandler:
 
     async def __cancel_command_handle(self, message: types.Message) -> None:
         cancellation_target = parse_cancel_command(message.text)
-        await cancel_handler.cancel(cancellation_target, message)
+        await self.cancel(cancellation_target, message)
 
     async def __cancel_handler_input_data(self, message: types.Message) -> None:
-        await cancel_handler.cancel(message.text, message)
+        await self.cancel(message.text, message)
 
     async def __try_request_from_user_cancellation_target(self, message: types.Message) -> None:
         try:
