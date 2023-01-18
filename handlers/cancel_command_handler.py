@@ -18,8 +18,13 @@ CANCEL_COMMAND_PATTERN = r'^\/cancel\s+(all)|(\d+)$'
 
 class CancelHandler:
     def __init__(self, bot: AsyncTeleBot, scheduler: AsyncIOScheduler):
+        assert bot is not None
+        assert scheduler is not None
         self.scheduler = scheduler
         self.bot = bot
+        self.__register_message_handlers()
+
+    def __register_message_handlers(self):
         self.bot.register_message_handler(commands=["cancel"], callback=self.__cancel_command_handle)
         self.bot.register_message_handler(state=CurrentState.wait_cancel_data,
                                           callback=self.__cancel_handler_input_data)
@@ -33,7 +38,7 @@ class CancelHandler:
             await self.__cancel_all_remind(message)
             return
 
-        await self.__cancel_remind(cancellation_target, message)
+        await self.__cancel_remind_by_id(cancellation_target, message)
 
     async def __cancel_command_handle(self, message: types.Message) -> None:
         cancellation_target = parse_cancel_command(message.text)
@@ -44,13 +49,13 @@ class CancelHandler:
 
     async def __try_request_from_user_cancellation_target(self, message: types.Message) -> None:
         try:
-            await self.bot.reply_to(message, REQUEST_CANCELLATION_TARGET_MESSAGE)
+            await self.bot.send_message(message.chat.id, REQUEST_CANCELLATION_TARGET_MESSAGE)
             await self.bot.set_state(message.from_user.id, CurrentState.wait_cancel_data, message.chat.id)
         except Exception as e:
             await self.bot.delete_state(message.from_user.id, message.chat.id)
             await self.bot.reply_to(message, ERROR_MESSAGE)
 
-    async def __cancel_remind(self, remind_id, message):
+    async def __cancel_remind_by_id(self, remind_id, message):
         try:
             self.scheduler.remove_job(job_id=remind_id)
         except JobLookupError:
