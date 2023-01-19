@@ -42,3 +42,7 @@ async def init_bot() -> None:
 async def register_filters(bot: AsyncTeleBot) -> None:
     bot.add_custom_filter(asyncio_filters.StateFilter(bot))
     bot.add_custom_filter(asyncio_filters.IsDigitFilter())
+
+
+def get_bot() -> AsyncTeleBot:
+    return bot

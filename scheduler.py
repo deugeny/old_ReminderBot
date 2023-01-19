@@ -27,7 +27,10 @@ def is_valid_start_datetime(start_at: datetime):
 
 scheduler = AsyncIOScheduler(jobstores=job_stores, job_defaults=job_defaults)
 
-# scheduler = BackgroundScheduler(jobstores=job_stores, executors=executors, job_defaults=job_defaults)
+
+def get_scheduler() -> AsyncIOScheduler:
+    return scheduler
+
 
 logging.basicConfig()
 logging.getLogger('apscheduler').setLevel(logging.DEBUG)

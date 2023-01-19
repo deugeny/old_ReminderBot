@@ -10,6 +10,7 @@ from apscheduler.jobstores.base import JobLookupError
 from scheduler import scheduler
 from bot import bot
 from CurrentState import CurrentState
+from callbacks.filters import cancel_remind_id
 
 CANCEL_COMMAND_PATTERN = r'^\/cancel\s+(all)|(\d+)$'
 
@@ -18,14 +19,9 @@ class CancelHandler:
     def __init__(self, bot: AsyncTeleBot, scheduler: AsyncIOScheduler):
         assert bot is not None
         assert scheduler is not None
-        self.scheduler = scheduler
-        self.bot = bot
-        self.__register_message_handlers()
-
-    def __register_message_handlers(self):
-        self.bot.register_message_handler(commands=["cancel"], callback=self.__cancel_command_handle)
-        self.bot.register_message_handler(state=CurrentState.wait_cancel_data,
-                                          callback=self.__cancel_handler_input_data)
+        self.__scheduler = scheduler
+        self.__bot = bot
+        self.__register_bot_handlers()
 
     async def cancel(self, cancellation_target: str, message: types.Message) -> bool | None:
         if cancellation_target is None:
@@ -38,6 +34,14 @@ class CancelHandler:
 
         await self.__cancel_remind_by_id(cancellation_target, message)
 
+    def __register_bot_handlers(self):
+        self.__bot.register_message_handler(commands=["cancel"], callback=self.__cancel_command_handle)
+        self.__bot.register_message_handler(state=CurrentState.wait_cancel_data,
+                                            callback=self.__cancel_handler_input_data)
+        # noinspection PyTypeChecker
+        self.__bot.register_callback_query_handler(self.__cancel_remind_callback, func=None,
+                                                   parse_prefix=cancel_remind_id.filter())
+
     async def __cancel_command_handle(self, message: types.Message) -> None:
         cancellation_target = parse_cancel_command(message.text)
         await self.cancel(cancellation_target, message)
@@ -47,27 +51,32 @@ class CancelHandler:
 
     async def __try_request_from_user_cancellation_target(self, message: types.Message) -> None:
         try:
-            await self.bot.send_message(message.chat.id, REQUEST_CANCELLATION_TARGET_MESSAGE)
-            await self.bot.set_state(message.from_user.id, CurrentState.wait_cancel_data, message.chat.id)
+            await self.__bot.send_message(message.chat.id, REQUEST_CANCELLATION_TARGET_MESSAGE)
+            await self.__bot.set_state(message.from_user.id, CurrentState.wait_cancel_data, message.chat.id)
         except Exception as e:
-            await self.bot.delete_state(message.from_user.id, message.chat.id)
-            await self.bot.reply_to(message, ERROR_MESSAGE)
+            await self.__bot.delete_state(message.from_user.id, message.chat.id)
+            await self.__bot.reply_to(message, ERROR_MESSAGE)
 
     async def __cancel_remind_by_id(self, remind_id: str, message: types.Message) -> None:
         try:
-            self.scheduler.remove_job(job_id=remind_id)
+            self.__scheduler.remove_job(job_id=remind_id)
         except JobLookupError:
-            await self.bot.reply_to(message, UNKNOWN_JOB_FORMAT.format(remind_id))
+            await self.__bot.reply_to(message, UNKNOWN_JOB_FORMAT.format(remind_id))
         finally:
-            await self.bot.delete_state(message.from_user.id, message.chat.id)
+            await self.__bot.delete_state(message.from_user.id, message.chat.id)
 
     async def __cancel_all_remind(self, message: types.Message) -> None:
         try:
-            self.scheduler.remove_all_jobs()
-            await self.bot.reply_to(message, ALL_JOBS_CANCELED)
-            await self.bot.delete_state(message.from_user.id, message.chat.id)
+            self.__scheduler.remove_all_jobs()
+            await self.__bot.reply_to(message, ALL_JOBS_CANCELED)
+            await self.__bot.delete_state(message.from_user.id, message.chat.id)
         finally:
-            await self.bot.delete_state(message.from_user.id, message.chat.id)
+            await self.__bot.delete_state(message.from_user.id, message.chat.id)
+
+    async def __cancel_remind_callback(self, call: types.CallbackQuery):
+        data: dict = cancel_remind_id.parse(callback_data=call.data)
+        remind_id = data.get('id')
+        await self.cancel(remind_id, call.message)
 
 
 def parse_cancel_command(text: str) -> Union[str, None]:

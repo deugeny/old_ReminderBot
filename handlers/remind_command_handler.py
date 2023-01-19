@@ -1,10 +1,10 @@
 import re
 from datetime import datetime, date, time
-from typing import Union
+from typing import Union, Callable
 
 from buttons import create_cancel_button, create_remind_help_button
-from scheduler import scheduler, is_valid_start_datetime
-from bot import bot
+from scheduler import get_scheduler, is_valid_start_datetime
+from bot import get_bot
 import datefinder
 from telebot import types
 from telebot.async_telebot import AsyncTeleBot
@@ -24,10 +24,21 @@ DEFAULT_DATE: datetime = datetime.combine(date=ZERO_DATE, time=ZERO_TIME)
 
 
 class ReminderHandler:
-    def __init__(self, bot: AsyncTeleBot, scheduler: AsyncIOScheduler):
-        self.__scheduler = scheduler
-        self.__bot = bot
-        self.__bot.register_message_handler(commands=['remind'], callback=self.__remind_handler)
+    def __init__(self, get_bot: Callable, get_scheduler: Callable):
+        self.__get_scheduler = get_scheduler
+        self.__get_bot = get_bot
+        self.__get_bot().register_message_handler(commands=['remind'], pass_bot=True, callback=self.__remind_handler)
+
+    @property
+    def bot(self) -> AsyncTeleBot:
+        return self.__get_bot()
+
+    @property
+    def scheduler(self) -> AsyncIOScheduler:
+        return self.__get_scheduler()
+
+    async def send_message(self, chat_id: Union[int, str], text: str) -> None:
+        await self.bot.send_message(chat_id, text)
 
     async def __remind_handler(self, message: types.Message):
         await self.schedule_remind(message)
@@ -42,11 +53,11 @@ class ReminderHandler:
         (start_at, text, trouble_ticket) = parse_remind_message(message.text)
         if not is_valid_start_datetime(start_at):
             help_markup = ReminderHandler.__create_help_remind_markup()
-            await self.__bot.reply_to(message, ERROR_DATETIME, parse_mode="markdown", reply_markup=help_markup)
+            await self.bot.reply_to(message, ERROR_DATETIME, parse_mode="markdown", reply_markup=help_markup)
             return False
 
-        self.__scheduler.add_job(self.__send_message, 'date', run_date=start_at, id=str(message.id),
-                                 args=[message.chat.id, text])
+        self.scheduler.add_job(self.send_message, 'date', run_date=start_at, id=str(message.id),
+                                       args=[message.chat.id, text])
 
         await self.__send_confirmation_message(message, start_at)
         return True
@@ -54,7 +65,8 @@ class ReminderHandler:
     async def __send_confirmation_message(self, message: types.Message, start_at: datetime) -> None:
         confirmation_message = CONFIRMATION_MESSAGE.format(start_at, message.id)
         cancel_markup = ReminderHandler.__create_cancel_markup(message)
-        await self.__bot.reply_to(message, confirmation_message, parse_mode="markdown", reply_markup=cancel_markup)
+        await self.bot.reply_to(message, confirmation_message, parse_mode="markdown",
+                                        reply_markup=cancel_markup)
 
     @staticmethod
     def __create_cancel_markup(message: types.Message):
@@ -62,11 +74,8 @@ class ReminderHandler:
         cancel_markup.row(create_cancel_button(message.id))
         return cancel_markup
 
-    async def __send_message(self, chat_id: Union[int, str], text: str) -> None:
-        await self.__bot.send_message(chat_id, text)
 
-
-remind_handler = ReminderHandler(bot, scheduler)
+remind_handler = ReminderHandler(get_bot, get_scheduler)
 
 
 def parse_remind_message(message, commands=REMIND_COMMANDS):

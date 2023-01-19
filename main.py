@@ -1,10 +1,9 @@
-from handlers.cancel_command_handler import cancel_handler, parse_cancel_command
-from handlers.remind_command_handler import schedule_remind
 from handlers.welcome_message_handler import send_welcome_message
 from handlers.help_command_handler import send_help
 from scheduler import scheduler
+from handlers.remind_command_handler import remind_handler
+from handlers.cancel_command_handler import cancel_handler
 from bot import bot, init_bot
-from CurrentState import CurrentState
 import asyncio
 
 
