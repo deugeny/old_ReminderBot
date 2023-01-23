@@ -1,13 +1,13 @@
 import asyncio
-from typing import Union
 
-from telebot.async_telebot import AsyncTeleBot
 from telebot import types, asyncio_filters
+from telebot.async_telebot import AsyncTeleBot
 from telebot.asyncio_storage import StateMemoryStorage
 
-from callbacks.filters import ParsePrefix, cancel_remind_id, help_id
 import config
 import messages
+from callbacks import start_callback
+from callbacks.filters import ParsePrefix, help_id, command_id
 from callbacks.help_callback import help_callback
 
 bot = AsyncTeleBot(config.API_TOKEN, state_storage=StateMemoryStorage())
@@ -30,6 +30,7 @@ async def init_bot_commands(bot: AsyncTeleBot) -> None:
 def register_callback_handlers(bot: AsyncTeleBot) -> None:
     bot.register_callback_query_handler(help_callback, pass_bot=True, func=None,
                                         parse_prefix=help_id.filter())
+
 
 
 async def init_bot() -> None:

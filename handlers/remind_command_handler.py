@@ -2,8 +2,10 @@ import re
 from datetime import datetime, date, time
 from typing import Union, Callable, Optional, Tuple, Iterator, Never
 
+from CancelMarkup import CancelMarkup
 from CurrentState import CurrentState
-from buttons import create_cancel_markup, create_remind_help_button
+from HelpButtonsMarkup import HelpButtonsMarkup
+from callbacks.filters import command_id, REMIND_COMMAND_ID
 from scheduler import get_scheduler, is_valid_start_datetime
 from bot import get_bot
 import datefinder
@@ -32,6 +34,14 @@ class ReminderHandler:
         self.__get_bot().register_edited_message_handler(commands=['remind'], pass_bot=True,
                                                          callback=self.__remind_reschedule_handler)
         self.__get_bot().register_message_handler(state=CurrentState.wait_remind_data, callback=self.schedule_remind)
+        self.bot.register_callback_query_handler(self.__start_callback, pass_bot=True, func=None,
+                                            parse_prefix=command_id.filter(id='remind_command'))
+
+    async def __start_callback(self, call: types.CallbackQuery, bot: AsyncTeleBot):
+        data: dict = command_id.parse(callback_data=call.data)
+        command_target = data.get('id')
+        if command_target == REMIND_COMMAND_ID:
+            await remind_handler.schedule_remind(call.message)
 
     @property
     def bot(self) -> AsyncTeleBot:
@@ -47,7 +57,7 @@ class ReminderHandler:
     async def __remind_reschedule_handler(self, message: types.Message) -> Never:
         (start_at, text, trouble_ticket) = parse_remind_message(message.text)
         if not is_valid_start_datetime(start_at):
-            help_markup = ReminderHandler.__create_help_remind_markup()
+            help_markup = HelpButtonsMarkup(commands='/remind')
             await self.bot.reply_to(message, ERROR_DATETIME, parse_mode="markdown", reply_markup=help_markup)
             return False
 
@@ -56,12 +66,6 @@ class ReminderHandler:
 
         await self.__send_confirmation_message(message, start_at)
         return True
-
-    @staticmethod
-    def __create_help_remind_markup() -> types.InlineKeyboardMarkup:
-        help_markup = types.InlineKeyboardMarkup()
-        help_markup.row(create_remind_help_button())
-        return help_markup
 
     async def schedule_remind(self, message: types.Message) -> bool:
         await self.bot.delete_state(message.from_user.id, message.chat.id)
@@ -81,7 +85,7 @@ class ReminderHandler:
 
     async def __send_confirmation_message(self, message: types.Message, start_at: datetime) -> Never:
         confirmation_message = CONFIRMATION_MESSAGE.format(start_at, message.id)
-        cancel_markup = create_cancel_markup(message)
+        cancel_markup = CancelMarkup(str(message.id))
         await self.bot.reply_to(message, confirmation_message, parse_mode="markdown",
                                 reply_markup=cancel_markup)
 

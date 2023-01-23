@@ -1,4 +1,4 @@
-from handlers.welcome_message_handler import send_welcome_message
+from handlers.start_message_handler import send_start_message
 from handlers.help_command_handler import send_help
 from scheduler import scheduler
 from handlers.remind_command_handler import remind_handler
@@ -9,7 +9,7 @@ import asyncio
 
 @bot.message_handler(commands=['start'])
 async def remind_handler(message):
-    await send_welcome_message(bot, message)
+    await send_start_message(bot, message)
 
 
 @bot.message_handler(commands=['help'])
