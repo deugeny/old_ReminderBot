@@ -1,8 +1,9 @@
 import re
 from datetime import datetime, date, time
-from typing import Union, Callable
+from typing import Union, Callable, Optional, Tuple, Iterator, Never
 
-from buttons import create_cancel_button, create_remind_help_button
+from CurrentState import CurrentState
+from buttons import create_cancel_markup, create_remind_help_button
 from scheduler import get_scheduler, is_valid_start_datetime
 from bot import get_bot
 import datefinder
@@ -24,10 +25,13 @@ DEFAULT_DATE: datetime = datetime.combine(date=ZERO_DATE, time=ZERO_TIME)
 
 
 class ReminderHandler:
-    def __init__(self, get_bot: Callable, get_scheduler: Callable):
-        self.__get_scheduler = get_scheduler
-        self.__get_bot = get_bot
-        self.__get_bot().register_message_handler(commands=['remind'], pass_bot=True, callback=self.__remind_handler)
+    def __init__(self, get_bot_func: Callable[[], AsyncTeleBot], get_scheduler_func: Callable[[], AsyncIOScheduler]):
+        self.__get_scheduler = get_scheduler_func
+        self.__get_bot = get_bot_func
+        self.__get_bot().register_message_handler(commands=['remind'], pass_bot=True, callback=self.schedule_remind)
+        self.__get_bot().register_edited_message_handler(commands=['remind'], pass_bot=True,
+                                                         callback=self.__remind_reschedule_handler)
+        self.__get_bot().register_message_handler(state=CurrentState.wait_remind_data, callback=self.schedule_remind)
 
     @property
     def bot(self) -> AsyncTeleBot:
@@ -37,48 +41,56 @@ class ReminderHandler:
     def scheduler(self) -> AsyncIOScheduler:
         return self.__get_scheduler()
 
-    async def send_message(self, chat_id: Union[int, str], text: str) -> None:
+    async def send_message(self, chat_id: Union[int, str], text: str) -> Never:
         await self.bot.send_message(chat_id, text)
 
-    async def __remind_handler(self, message: types.Message):
-        await self.schedule_remind(message)
-
-    @staticmethod
-    def __create_help_remind_markup():
-        help_markup = types.InlineKeyboardMarkup()
-        help_markup.row(create_remind_help_button())
-        return help_markup
-
-    async def schedule_remind(self, message: types.Message) -> bool:
+    async def __remind_reschedule_handler(self, message: types.Message) -> Never:
         (start_at, text, trouble_ticket) = parse_remind_message(message.text)
         if not is_valid_start_datetime(start_at):
             help_markup = ReminderHandler.__create_help_remind_markup()
             await self.bot.reply_to(message, ERROR_DATETIME, parse_mode="markdown", reply_markup=help_markup)
             return False
 
-        self.scheduler.add_job(self.send_message, 'date', run_date=start_at, id=str(message.id),
-                                       args=[message.chat.id, text])
+        self.scheduler.reschedule_job(self.send_message, 'date', run_date=start_at, id=str(message.id),
+                                      args=[message.chat.id, text])
 
         await self.__send_confirmation_message(message, start_at)
         return True
 
-    async def __send_confirmation_message(self, message: types.Message, start_at: datetime) -> None:
-        confirmation_message = CONFIRMATION_MESSAGE.format(start_at, message.id)
-        cancel_markup = ReminderHandler.__create_cancel_markup(message)
-        await self.bot.reply_to(message, confirmation_message, parse_mode="markdown",
-                                        reply_markup=cancel_markup)
-
     @staticmethod
-    def __create_cancel_markup(message: types.Message):
-        cancel_markup = types.InlineKeyboardMarkup()
-        cancel_markup.row(create_cancel_button(message.id))
-        return cancel_markup
+    def __create_help_remind_markup() -> types.InlineKeyboardMarkup:
+        help_markup = types.InlineKeyboardMarkup()
+        help_markup.row(create_remind_help_button())
+        return help_markup
+
+    async def schedule_remind(self, message: types.Message) -> bool:
+        await self.bot.delete_state(message.from_user.id, message.chat.id)
+        (start_at, text, trouble_ticket) = parse_remind_message(message.text)
+        if not is_valid_start_datetime(start_at):
+            await self.bot.set_state(message.from_user.id, CurrentState.wait_remind_data, message.chat.id)
+            await self.bot.send_message(message.chat.id, "введите сообщение")
+            # help_markup = ReminderHandler.__create_help_remind_markup()
+            # await self.bot.reply_to(message, ERROR_DATETIME, parse_mode="markdown", reply_markup=help_markup)
+            return False
+
+        self.scheduler.add_job(self.send_message, 'date', run_date=start_at, id=str(message.id),
+                               args=[message.chat.id, text])
+
+        await self.__send_confirmation_message(message, start_at)
+        return True
+
+    async def __send_confirmation_message(self, message: types.Message, start_at: datetime) -> Never:
+        confirmation_message = CONFIRMATION_MESSAGE.format(start_at, message.id)
+        cancel_markup = create_cancel_markup(message)
+        await self.bot.reply_to(message, confirmation_message, parse_mode="markdown",
+                                reply_markup=cancel_markup)
 
 
 remind_handler = ReminderHandler(get_bot, get_scheduler)
 
 
-def parse_remind_message(message, commands=REMIND_COMMANDS):
+def parse_remind_message(message: str, commands: Optional[Iterator[str]] = REMIND_COMMANDS) -> Tuple[
+    datetime | None, str | None, str | None]:
     """
     Осуществляет разбор сообщения указанного в параметре text.
     В тексте пытается обнаружить дату и время, а также номер инцидента (8 цифровых символов подряд)
@@ -101,12 +113,12 @@ def parse_remind_message(message, commands=REMIND_COMMANDS):
     return start_at, text, trouble_ticket
 
 
-def try_get_trouble_ticket_number(text):
+def try_get_trouble_ticket_number(text: str) -> str | None:
     numbers_match = re.search(TROUBLE_TICKET_NUMBER_PATTERN, text)
     return numbers_match[0] if numbers_match else None
 
 
-def try_get_datetime_from_message(text):
+def try_get_datetime_from_message(text: str) -> datetime | None:
     extracted_datetimes = list(datefinder.find_dates(text, first=DATE_FIRST_PART_KIND, base_date=DEFAULT_DATE))
     if len(extracted_datetimes) == 0:
         return None

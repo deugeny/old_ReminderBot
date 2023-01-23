@@ -1,11 +1,11 @@
 import re
-from typing import Union
+from typing import Union, Never
 
 import messages
-from buttons import create_help_buttons
 from telebot.async_telebot import AsyncTeleBot
 from telebot import types
 
+from HelpButtonsMarkup import HelpButtonsMarkup
 
 HELP_COMMAND_PATTERN = r'^\/help\s+[\/]*(remind|cancel|help)$'
 
@@ -16,7 +16,7 @@ HELP_MESSAGES = {
 }
 
 
-async def send_help(bot: AsyncTeleBot, message: types.Message) -> None:
+async def send_help(bot: AsyncTeleBot, message: types.Message) -> Never:
     command = parse_help_command(message.text)
     help_message_text = HELP_MESSAGES.get(command)
     if help_message_text is not None:
@@ -32,6 +32,6 @@ def parse_help_command(text: str) -> str:
     return command.lower()
 
 
-async def send_help_message(bot: AsyncTeleBot, chat_id: Union[int, str], help_message_text: str) -> None:
-    markup = create_help_buttons()
+async def send_help_message(bot: AsyncTeleBot, chat_id: Union[int, str], help_message_text: str) -> Never:
+    markup = HelpButtonsMarkup()
     await bot.send_message(chat_id, help_message_text, parse_mode="markdown", reply_markup=markup)
