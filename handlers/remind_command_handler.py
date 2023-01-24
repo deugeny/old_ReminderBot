@@ -30,18 +30,12 @@ class ReminderHandler:
     def __init__(self, get_bot_func: Callable[[], AsyncTeleBot], get_scheduler_func: Callable[[], AsyncIOScheduler]):
         self.__get_scheduler = get_scheduler_func
         self.__get_bot = get_bot_func
-        self.__get_bot().register_message_handler(commands=['remind'], pass_bot=True, callback=self.schedule_remind)
-        self.__get_bot().register_edited_message_handler(commands=['remind'], pass_bot=True,
-                                                         callback=self.__remind_reschedule_handler)
-        self.__get_bot().register_message_handler(state=CurrentState.wait_remind_data, callback=self.schedule_remind)
-        self.bot.register_callback_query_handler(self.__start_callback, pass_bot=True, func=None,
-                                            parse_prefix=command_id.filter(id='remind_command'))
-
-    async def __start_callback(self, call: types.CallbackQuery, bot: AsyncTeleBot):
-        data: dict = command_id.parse(callback_data=call.data)
-        command_target = data.get('id')
-        if command_target == REMIND_COMMAND_ID:
-            await remind_handler.schedule_remind(call.message)
+        self.bot.register_message_handler(commands=['remind'], callback=self.__handle_remind)
+        self.bot.register_edited_message_handler(commands=['remind'], callback=self.__remind_reschedule_handler)
+        self.bot.register_message_handler(state=CurrentState.wait_remind_data, func=None,
+                                          callback=self.__handle_remind)
+        self.bot.register_callback_query_handler(callback=self.__start_callback, pass_bot=False, func=None,
+                                                 parse_prefix=command_id.filter(id='remind_command'))
 
     @property
     def bot(self) -> AsyncTeleBot:
@@ -54,40 +48,45 @@ class ReminderHandler:
     async def send_message(self, chat_id: Union[int, str], text: str) -> Never:
         await self.bot.send_message(chat_id, text)
 
+    async def __start_callback(self, call: types.CallbackQuery) -> Never:
+        await self.schedule_remind("", call.from_user.id, call.message.chat.id)
+
+    async def __handle_remind(self, message: types.Message) -> Never:
+        await self.schedule_remind(message.text, message.from_user.id, message.chat.id, message.message_id)
+
+    async def schedule_remind(self, text: str, user_id: int, chat_id, message_id: int | None = None) -> Never:
+        await self.bot.delete_state(user_id, chat_id)
+        (start_at, text, trouble_ticket) = parse_remind_message(text)
+        if not is_valid_start_datetime(start_at):
+            await self.bot.set_state(user_id, CurrentState.wait_remind_data, chat_id)
+            await self.bot.send_message(chat_id, "введите сообщение")
+            return
+
+        if message_id is not None:
+            self.scheduler.add_job(self.send_message, 'date', run_date=start_at, id=str(message_id),
+                                   args=[chat_id, text])
+
+            await self.__send_confirmation_message(chat_id, message_id, start_at)
+
     async def __remind_reschedule_handler(self, message: types.Message) -> Never:
         (start_at, text, trouble_ticket) = parse_remind_message(message.text)
         if not is_valid_start_datetime(start_at):
             help_markup = HelpButtonsMarkup(commands='/remind')
             await self.bot.reply_to(message, ERROR_DATETIME, parse_mode="markdown", reply_markup=help_markup)
-            return False
+            return
 
         self.scheduler.reschedule_job(self.send_message, 'date', run_date=start_at, id=str(message.id),
                                       args=[message.chat.id, text])
 
-        await self.__send_confirmation_message(message, start_at)
-        return True
+        await self.__send_confirmation_message(message.chat.id, message.message_id, start_at)
+        return
 
-    async def schedule_remind(self, message: types.Message) -> bool:
-        await self.bot.delete_state(message.from_user.id, message.chat.id)
-        (start_at, text, trouble_ticket) = parse_remind_message(message.text)
-        if not is_valid_start_datetime(start_at):
-            await self.bot.set_state(message.from_user.id, CurrentState.wait_remind_data, message.chat.id)
-            await self.bot.send_message(message.chat.id, "введите сообщение")
-            # help_markup = ReminderHandler.__create_help_remind_markup()
-            # await self.bot.reply_to(message, ERROR_DATETIME, parse_mode="markdown", reply_markup=help_markup)
-            return False
-
-        self.scheduler.add_job(self.send_message, 'date', run_date=start_at, id=str(message.id),
-                               args=[message.chat.id, text])
-
-        await self.__send_confirmation_message(message, start_at)
-        return True
-
-    async def __send_confirmation_message(self, message: types.Message, start_at: datetime) -> Never:
-        confirmation_message = CONFIRMATION_MESSAGE.format(start_at, message.id)
-        cancel_markup = CancelMarkup(str(message.id))
-        await self.bot.reply_to(message, confirmation_message, parse_mode="markdown",
-                                reply_markup=cancel_markup)
+    async def __send_confirmation_message(self, chat_id: int, message_id: int, start_at: datetime) -> Never:
+        confirmation_message = CONFIRMATION_MESSAGE.format(start_at, message_id)
+        cancel_markup = CancelMarkup(str(message_id))
+        await self.bot.send_message(chat_id, confirmation_message, reply_to_message_id=message_id,
+                                    parse_mode="markdown",
+                                    reply_markup=cancel_markup)
 
 
 remind_handler = ReminderHandler(get_bot, get_scheduler)
