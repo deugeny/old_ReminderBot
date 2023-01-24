@@ -31,7 +31,8 @@ class ReminderHandler:
         self.__get_scheduler = get_scheduler_func
         self.__get_bot = get_bot_func
         self.bot.register_message_handler(commands=['remind'], callback=self.__handle_remind)
-        self.bot.register_edited_message_handler(commands=['remind'], callback=self.__remind_reschedule_handler)
+        self.bot.register_edited_message_handler(commands=['remind'],
+                                                 callback=self.__handle_remind_message_user_changing)
         self.bot.register_message_handler(state=CurrentState.wait_remind_data, func=None,
                                           callback=self.__handle_remind)
         self.bot.register_callback_query_handler(callback=self.__start_callback, pass_bot=False, func=None,
@@ -68,7 +69,7 @@ class ReminderHandler:
 
             await self.__send_confirmation_message(chat_id, message_id, start_at)
 
-    async def __remind_reschedule_handler(self, message: types.Message) -> Never:
+    async def __handle_remind_message_user_changing(self, message: types.Message) -> Never:
         (start_at, text, trouble_ticket) = parse_remind_message(message.text)
         if not is_valid_start_datetime(start_at):
             help_markup = HelpButtonsMarkup(commands='/remind')
